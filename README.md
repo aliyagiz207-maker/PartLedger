@@ -1,99 +1,91 @@
-# Excel Reporter
+# PartLedger
 
-Excel Reporter; şirketlerin elle hazırladığı satış raporlarını otomatikleştiren,
-Excel/CSV verilerini okuyup temizleyen, doğrulayan, KPI hesaplayan ve
-profesyonel Excel dashboard + PDF yönetici özeti üreten bir Python masaüstü
-uygulamasıdır. Windows için tek dosya (.exe) olarak paketlenmiştir.
+Excel ve CSV formatındaki satış verilerini otomatik olarak okuyan, doğrulayan,
+temizleyen, KPI'ları hesaplayan ve profesyonel bir Excel dashboard ile tek
+sayfalık bir PDF yönetici özeti üreten, Windows için paketlenmiş bir masaüstü
+raporlama motoru.
 
 > **Not:** Kaynak kod telif hakkı ile korunmaktadır. İzinsiz kopyalanamaz,
 > dağıtılamaz veya ticari amaçla kullanılamaz. Bkz. [LICENSE](LICENSE).
 
 ---
 
-## Ekran Görüntüleri
+## Mimari
 
-**Excel Dashboard**
+Proje, katmanlar arası net bir sorumluluk ayrımı (separation of concerns)
+üzerine kurulu:
 
-![Dashboard](docs/screenshots/dashboard.png)
+```
+Girdi (Excel/CSV)
+      │
+      ▼
+excel_reader     → dosyaları okur, birleştirir
+      │
+      ▼
+validator        → şema, veri tipi, negatif değer, geçersiz tarih kontrolü
+      │
+      ▼
+data_cleaner     → boş satır ve tekrar eden kayıt temizliği
+      │
+      ▼
+kpi_calculator   → ciro/maliyet/kâr/marj hesaplama, bölge/ürün/aylık özet
+      │
+      ├──▶ report_generator  → Excel dashboard (KPI kartları, tablolar, grafikler)
+      └──▶ pdf_report        → tek sayfalık PDF yönetici özeti
+      │
+      ▼
+file_manager     → zaman damgalı arşivleme
+```
 
-**PDF Yönetici Özeti**
+Arayüz (`main.py`) bu katmanları çağıran ince bir katmandır; iş mantığını
+kendi içinde barındırmaz. Ağır işlemler (okuma → hesaplama → rapor üretimi)
+arka planda ayrı bir **thread** üzerinde çalışır — arayüz işlem sırasında
+donmaz, kullanıcı ilerlemeyi canlı bir log penceresinden takip eder.
 
-![PDF Report](docs/screenshots/pdf_report.png)
+## Öne Çıkan Özellikler
 
----
-
-## Özellikler
-
-- Birden fazla Excel/CSV dosyasını otomatik okuma ve birleştirme
-- Veri doğrulama: eksik kolon, sayısal olmayan değer, geçersiz tarih,
-  negatif değer kontrolü
-- Veri temizleme: boş satır ve tekrar eden kayıt temizliği
+- Çoklu Excel/CSV dosyasını otomatik okuma ve birleştirme
+- Kapsamlı veri doğrulama: eksik kolon, sayısal olmayan değer, geçersiz
+  tarih, negatif değer kontrolü — hatalı veri kullanıcıya anlaşılır bir
+  mesajla bildirilir, program çökmez
 - KPI hesaplama: toplam ciro, maliyet, kâr, kâr marjı
 - Bölgesel, ürün bazlı (Top 5) ve aylık performans analizi
-- Excel Dashboard: KPI kartları, tablolar, 3 grafik, kurumsal logo
-- Tek sayfalık PDF yönetici özeti (Türkçe karakter desteğiyle)
-- Otomatik rapor arşivleme (zaman damgalı)
+- Excel Dashboard: KPI kartları, 3 grafik, kurumsal logo, tamamen Türkçe arayüz
+- Tek sayfalık PDF yönetici özeti (Unicode/Türkçe karakter destekli font ile)
+- Multithreading destekli grafik arayüz — işlem arka planda çalışırken arayüz
+  yanıt vermeye devam eder
+- Otomatik zaman damgalı arşivleme
 - JSON ile yapılandırılabilir kurum bilgisi (isim, logo, para birimi)
-- Tkinter tabanlı grafik arayüz (GUI)
 - PyInstaller ile tek dosya Windows EXE paketleme
-- **29 otomatik test** (KPI doğruluğu, validation, edge case'ler,
-  gerçek veri baseline karşılaştırması)
-
----
+- **33 otomatik birim testi** — KPI doğruluğu, validation, edge case'ler,
+  Excel/PDF üretimi, dosya yönetimi ve config yükleme dahil, tamamı geçiyor
 
 ## Kullanılan Teknolojiler
 
-- Python 3
-- pandas, openpyxl (Excel işleme)
-- ReportLab (PDF üretimi, Unicode/Türkçe font desteği)
-- Loguru (loglama)
-- pytest (test)
-- PyInstaller (EXE paketleme)
+Python 3, pandas + openpyxl (veri ve Excel işleme), ReportLab (PDF, Unicode
+font desteğiyle), Loguru (loglama), pytest (test), Tkinter (arayüz),
+PyInstaller (EXE paketleme).
 
----
+## 📸 Ekran Görüntüleri
 
-## Proje Yapısı
-
-```
-ExcelReporter/
-│
-├── assets/
-│   ├── logo_placeholder.png
-│   └── fonts/              (PDF için Türkçe karakter destekli fontlar)
-│
-├── data/
-│   ├── input/               (örnek/kaynak veri)
-│   ├── output/               (üretilen rapor - otomatik oluşur)
-│   └── archive/              (arşivlenen raporlar - otomatik oluşur)
-│
-├── src/                      (kaynak kod)
-├── tests/                    (29 otomatik test)
-├── config.json
-├── requirements.txt
-├── ExcelReporter.spec         (PyInstaller yapılandırması)
-└── README.md
-```
-
----
+| Canlı Konsol ve Arayüz | Otomatik Excel Raporu | Otomatik PDF Çıktısı |
+| :---: | :---: | :---: |
+| ![GUI](docs/screenshots/islem_basarili.png) | ![Excel](docs/screenshots/excel_dashboard_raporu.png) | ![PDF](docs/screenshots/pdf_raporu.png) |
 
 ## Kurulum
 
 ```
-git clone https://github.com/aliyagiz207-maker/ExcelReporter.git
-cd ExcelReporter
+git clone https://github.com/aliyagiz207-maker/PartLedger.git
+cd PartLedger
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
----
-
 ## Kullanım
 
 ```
 python src/main.py
-python src/main.py --month january
-python src/main.py --month january march
 ```
 
 Testleri çalıştırmak için:
@@ -105,36 +97,26 @@ python -m pytest -v
 Windows EXE üretmek için:
 
 ```
-pyinstaller ExcelReporter.spec --clean
+pip install pyinstaller
+pyinstaller PartLedger.spec --clean
 ```
 
----
-
 ## Yapılandırma
-
-Tüm uygulama ayarları `config.json` üzerinden değiştirilebilir:
 
 ```json
 {
     "company_name": "Örnek Şirket A.Ş.",
-    "dashboard_title": "Monthly Sales Dashboard",
-    "currency": "$",
+    "dashboard_title": "Aylık Satış Panosu",
+    "currency": "₺",
     "logo_path": "assets/logo_placeholder.png",
-    "output_file": "data/output/Rapor.xlsx"
+    "output_file": "data/output/PartLedger_Rapor.xlsx"
 }
 ```
 
----
+## Lisans
 
-## Lisans / Kullanım Koşulları
-
-Bu proje özeldir ve tüm hakları saklıdır. Ayrıntılar için [LICENSE](LICENSE)
-dosyasına bakınız. Kullanım, kopyalama veya dağıtım için yazılı izin
-gereklidir.
-
----
+Bu proje özeldir, tüm hakları saklıdır. Ayrıntılar için [LICENSE](LICENSE).
 
 ## Geliştirici
 
-**Ali Yağız Demir**
-GitHub: <https://github.com/aliyagiz207-maker>
+**Ali Yağız Demir** — <https://github.com/aliyagiz207-maker>

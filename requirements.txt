@@ -1,6 +1,4 @@
 colorama==0.4.6
-customtkinter==6.0.0
-darkdetect==0.8.0
 et_xmlfile==2.0.0
 loguru==0.7.3
 numpy==2.5.1

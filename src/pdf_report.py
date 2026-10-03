@@ -42,12 +42,6 @@ def get_resource_root():
 
 
 def register_fonts():
-    """
-    Türkçe karakterleri (İ, ı, ğ, ş, ö, ü, ç) doğru gösterebilmek
-    için Unicode destekli bir font kaydeder. ReportLab'ın varsayılan
-    Helvetica fontu bu karakterleri desteklemez ve boş kutu olarak
-    basar; bu fonksiyon çağrılmadan PDF üretilmemelidir.
-    """
     global _FONTS_REGISTERED
 
     if _FONTS_REGISTERED:
@@ -148,7 +142,7 @@ def build_kpi_table(kpis, config):
 
         table_data.append([KPI_LABELS_TR.get(key, key), display])
 
-    table = Table(table_data, colWidths=[8 * cm, 6 * cm])
+    table = Table(table_data, colWidths=[8*cm, 6*cm])
 
     table.setStyle(
         TableStyle(
@@ -239,32 +233,27 @@ def generate_pdf_report(
     output_folder = application_root / "data" / "output"
     output_folder.mkdir(parents=True, exist_ok=True)
 
-    output_file = output_folder / "Report.pdf"
+    # PDF DOSYA İSMİ DÜZELTİLDİ
+    output_file = output_folder / "PartLedger_Rapor.pdf"
 
     document = SimpleDocTemplate(
         str(output_file),
         pagesize=A4,
-        topMargin=1.0 * cm,
-        bottomMargin=1.0 * cm,
-        leftMargin=1.5 * cm,
-        rightMargin=1.5 * cm,
+        topMargin=1.0*cm,
+        bottomMargin=1.0*cm,
+        leftMargin=1.5*cm,
+        rightMargin=1.5*cm,
     )
 
     elements = []
 
-    # -----------------------------------------
-    # Logo
-    # -----------------------------------------
     logo_file = resource_root / config["logo_path"]
 
     if logo_file.exists():
-        logo = Image(str(logo_file), width=3.5 * cm, height=1.75 * cm)
+        logo = Image(str(logo_file), width=3.5*cm, height=1.75*cm)
         logo.hAlign = "RIGHT"
         elements.append(logo)
 
-    # -----------------------------------------
-    # Başlık
-    # -----------------------------------------
     elements.append(
         Paragraph(config["company_name"], styles["Title"])
     )
@@ -275,9 +264,6 @@ def generate_pdf_report(
 
     elements.append(Spacer(1, 4))
 
-    # -----------------------------------------
-    # KPI Tablosu
-    # -----------------------------------------
     elements.append(
         Paragraph("Temel Performans Göstergeleri", styles["Heading3"])
     )
@@ -285,9 +271,6 @@ def generate_pdf_report(
     elements.append(build_kpi_table(kpis, config))
     elements.append(Spacer(1, 8))
 
-    # -----------------------------------------
-    # Regional Performance
-    # -----------------------------------------
     if not region_summary.empty:
         elements.append(
             KeepTogether(
@@ -300,7 +283,7 @@ def generate_pdf_report(
                         region_summary,
                         "Region",
                         config,
-                        column_widths=[5 * cm, 4 * cm, 4 * cm, 3 * cm],
+                        column_widths=[5*cm, 4*cm, 4*cm, 3*cm],
                         display_label="Bölge",
                     ),
                 ]
@@ -308,9 +291,6 @@ def generate_pdf_report(
         )
         elements.append(Spacer(1, 8))
 
-    # -----------------------------------------
-    # Top 5 Products
-    # -----------------------------------------
     if not product_summary.empty:
         top5 = (
             product_summary
@@ -329,7 +309,7 @@ def generate_pdf_report(
                         top5,
                         "Product",
                         config,
-                        column_widths=[5 * cm, 4 * cm, 4 * cm, 3 * cm],
+                        column_widths=[5*cm, 4*cm, 4*cm, 3*cm],
                         display_label="Ürün",
                     ),
                 ]
@@ -337,9 +317,6 @@ def generate_pdf_report(
         )
         elements.append(Spacer(1, 8))
 
-    # -----------------------------------------
-    # Monthly Performance
-    # -----------------------------------------
     if not monthly_summary.empty:
         elements.append(
             KeepTogether(
@@ -352,7 +329,7 @@ def generate_pdf_report(
                         monthly_summary,
                         "Month",
                         config,
-                        column_widths=[5 * cm, 4 * cm, 4 * cm, 3 * cm],
+                        column_widths=[5*cm, 4*cm, 4*cm, 3*cm],
                         display_label="Ay",
                     ),
                 ]
@@ -360,9 +337,6 @@ def generate_pdf_report(
         )
         elements.append(Spacer(1, 8))
 
-    # -----------------------------------------
-    # Alt Bilgi
-    # -----------------------------------------
     elements.append(
         Paragraph(
             f"Oluşturulma: {datetime.now().strftime('%d.%m.%Y %H:%M')}",
@@ -373,7 +347,7 @@ def generate_pdf_report(
     elements.append(Spacer(1, 4))
 
     elements.append(
-        Paragraph("ExcelReporter tarafından oluşturuldu", styles["Italic"])
+        Paragraph("PartLedger tarafından oluşturuldu", styles["Italic"])
     )
 
     document.build(elements)

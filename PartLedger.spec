@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 a = Analysis(
-    ['src/gui.py'],
+    ['src/main.py'],
     pathex=[],
     binaries=[],
     datas=[
@@ -26,7 +26,7 @@ exe = EXE(
     a.datas,
     [],
     exclude_binaries=False,
-    name='ExcelReporter',
+    name='PartLedger',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

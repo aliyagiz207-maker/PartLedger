@@ -1,7 +1,7 @@
 {
-    "company_name": "Örnek Şirket A.Ş.",
-    "dashboard_title": "Aylık Satış Panosu",
-    "currency": "₺",
-    "logo_path": "assets/logo_placeholder.png",
-    "output_file": "data/output/Rapor.xlsx"
+  "output_file": "data/output/PartLedger_Rapor.xlsx",
+  "logo_path": "assets/logo_placeholder.png",
+  "dashboard_title": "Aylık Satış Panosu",
+  "company_name": "Örnek Şirket A.Ş.",
+  "currency": "₺"
 }

@@ -1,41 +1,26 @@
-# Virtual Environment
-
-.venv/
-
-# Python Cache
-
+# Python Caches & Virtual Envs
 __pycache__/
 *.py[cod]
-
-# Pytest
-
+*$py.class
 .pytest_cache/
+venv/
+env/
 
-# Logs
-
-logs/
-*.log
-
-# Output Files
-
-data/output/
-data/archive/
-
-# Environment Variables
-
-.env
-
-# VS Code
-
-.vscode/
-
-# macOS
-
-.DS_Store
-
-# Windows
-
-Thumbs.db
-# PyInstaller
+# Build Artifacts
 build/
 dist/
+*.exe
+
+# IDE & OS Files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Generated Output & Logs (Klasörleri tut, içindekileri yoksay)
+logs/*
+!logs/.gitkeep
+data/output/*
+!data/output/.gitkeep
+data/archive/*
+!data/archive/.gitkeep

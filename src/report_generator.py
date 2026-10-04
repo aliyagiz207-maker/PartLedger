@@ -123,6 +123,7 @@ def generate_report(
             if "Quantity" not in key:
                 value_cell_obj.number_format = f'{config["currency"]}#,##0'
 
+    # --- BÖLGESEL PERFORMANS ---
     region_analysis = region_summary.sort_values("Revenue", ascending=False).reset_index(drop=True)
 
     sheet["A10"] = "Bölgesel Performans"
@@ -168,11 +169,18 @@ def generate_report(
     region_chart.width = 13
     region_chart.height = 6.5
     region_chart.legend = None
+    
+    # ETIKET DUZELTMELERI
     region_chart.dataLabels = DataLabelList()
     region_chart.dataLabels.showVal = True
+    region_chart.dataLabels.showSerName = False
+    region_chart.dataLabels.showCatName = False
+    region_chart.dataLabels.showLegendKey = False
+    
     region_chart.gapWidth = 60
     sheet.add_chart(region_chart, "F10")
 
+    # --- EN ÇOK SATAN 5 ÜRÜN ---
     product_analysis = product_summary.sort_values("Revenue", ascending=False).head(5).reset_index(drop=True)
 
     sheet["A20"] = "En Çok Satan 5 Ürün"
@@ -217,11 +225,18 @@ def generate_report(
     product_chart.width = 13
     product_chart.height = 6.5
     product_chart.legend = None
+    
+    # ETIKET DUZELTMELERI
     product_chart.dataLabels = DataLabelList()
     product_chart.dataLabels.showVal = True
+    product_chart.dataLabels.showSerName = False
+    product_chart.dataLabels.showCatName = False
+    product_chart.dataLabels.showLegendKey = False
+    
     product_chart.gapWidth = 60
     sheet.add_chart(product_chart, "F20")
 
+    # --- AYLIK PERFORMANS ---
     monthly_analysis = monthly_summary.sort_values("Month").reset_index(drop=True)
 
     sheet["A30"] = "Aylık Performans"
@@ -264,12 +279,19 @@ def generate_report(
     monthly_chart.width = 13
     monthly_chart.height = 6.5
     monthly_chart.legend = None
+    
+    # ETIKET DUZELTMELERI
     monthly_chart.dataLabels = DataLabelList()
     monthly_chart.dataLabels.showVal = True
+    monthly_chart.dataLabels.showSerName = False
+    monthly_chart.dataLabels.showCatName = False
+    monthly_chart.dataLabels.showLegendKey = False
+    
     monthly_chart.gapWidth = 60
     monthly_chart.y_axis.scaling.min = 0
     sheet.add_chart(monthly_chart, "F30")
 
+    # --- DETAIL DATA (HAM VERİ) SEKMESİ ---
     detail_sheet = workbook.create_sheet("Detail Data")
     detail_sheet.sheet_view.showGridLines = False
     detail_sheet.freeze_panes = "A2"
@@ -290,7 +312,6 @@ def generate_report(
         for row_index in range(2, detail_sheet.max_row + 1):
             detail_sheet[f"{date_letter}{row_index}"].number_format = "dd.mm.yyyy"
             
-    # YENİ EKLENEN PARA BİRİMİ FORMATI
     currency_columns = ["UnitPrice", "UnitCost", "Revenue", "Profit"]
     for col_idx, header_cell in enumerate(detail_sheet[1], start=1):
         if header_cell.value in currency_columns:
@@ -310,6 +331,7 @@ def generate_report(
 
     detail_sheet.sheet_view.zoomScale = 90
 
+    # --- SAYFA VE YAZDIRMA AYARLARI ---
     sheet.print_area = "A1:N53"
     sheet.page_setup.orientation = "landscape"
     sheet.page_setup.fitToWidth = 1

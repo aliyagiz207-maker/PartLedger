@@ -8,7 +8,7 @@ import os
 from config_loader import load_config
 from file_manager import archive_report
 from pdf_report import generate_pdf_report
-from excel_reader import read_excel_folder
+from excel_reader import read_and_combine
 from validator import validate_dataframe
 from data_cleaner import clean_data
 from kpi_calculator import calculate_kpis
@@ -113,8 +113,8 @@ class PartLedgerApp:
             if not any(self.input_folder.glob("*.xls*")) and not any(self.input_folder.glob("*.csv")):
                 raise ValueError(f"Analiz edilecek veri bulunamadı. Lütfen Input klasörüne veri ekleyin.")
 
-            self.root.after(0, self._log_to_console, "Ham veriler (Excel/CSV) okunuyor...")
-            df = read_excel_folder(self.input_folder)
+            self.root.after(0, self._log_to_console, "Ham veriler (Excel/CSV) okunuyor (Bellek Optimizasyonlu)...")
+            df = read_and_combine(self.input_folder, chunk_size=50000)
             
             self.root.after(0, self._log_to_console, "Veri bütünlüğü doğrulanıyor ve anormallikler temizleniyor...")
             validate_dataframe(df)

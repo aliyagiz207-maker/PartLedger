@@ -21,11 +21,7 @@ def setup_logger():
         project_root = Path(__file__).resolve().parent.parent
 
     log_folder = project_root / "logs"
-
-    log_folder.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
+    log_folder.mkdir(parents=True, exist_ok=True)
 
     logger.remove()
 
@@ -37,9 +33,10 @@ def setup_logger():
         encoding="utf-8",
     )
 
-    logger.add(
-        lambda msg: print(msg, end=""),
-        level="INFO",
-    )
+    if sys.stdout is not None:
+        logger.add(
+            sys.stdout,
+            level="INFO",
+        )
 
     return logger

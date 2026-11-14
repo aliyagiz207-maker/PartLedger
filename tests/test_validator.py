@@ -17,8 +17,8 @@ def build_valid_df():
 
 def test_valid_dataframe_does_not_raise():
     df = build_valid_df()
-
-    validate_dataframe(df)
+    result = validate_dataframe(df)
+    assert pd.api.types.is_datetime64_any_dtype(result["Date"])
 
 
 def test_empty_dataframe_raises():
@@ -79,9 +79,36 @@ def test_negative_unit_cost_raises():
 
 
 def test_zero_quantity_does_not_raise():
-    # Quantity = 0 geçerli bir durumdur (Revenue = 0 olur),
-    # hata değildir.
     df = build_valid_df()
     df["Quantity"] = [0, 5]
 
     validate_dataframe(df)
+
+
+def test_partial_nan_in_numeric_column_raises():
+    df = build_valid_df()
+    df["UnitPrice"] = [100.0, float("nan")]
+
+    with pytest.raises(ValueError, match="Eksik \\(boş\\) sayısal"):
+        validate_dataframe(df)
+
+
+def test_missing_region_raises():
+    df = build_valid_df()
+    df["Region"] = ["İzmir", None]
+
+    with pytest.raises(ValueError, match="Eksik \\(boş\\) metin"):
+        validate_dataframe(df)
+
+
+def test_blank_product_raises():
+    df = build_valid_df()
+    df["Product"] = ["   ", "Oil Filter"]
+
+    with pytest.raises(ValueError, match="Eksik \\(boş\\) metin"):
+        validate_dataframe(df)
+
+
+def test_none_dataframe_raises():
+    with pytest.raises(ValueError, match="boş"):
+        validate_dataframe(None)

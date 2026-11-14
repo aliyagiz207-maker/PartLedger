@@ -31,3 +31,20 @@ def test_clean_data_removes_duplicates():
     result = clean_data(df)
 
     assert len(result) == 1
+
+
+def test_clean_data_strips_whitespace_before_dedup():
+    df = pd.DataFrame({
+        "Date": ["2026-01-01", "2026-01-01"],
+        "Product": ["Brake Pad ", "Brake Pad"],
+        "Region": [" İzmir", "İzmir"],
+        "Quantity": [10, 10],
+        "UnitPrice": [100, 100],
+        "UnitCost": [60, 60],
+    })
+
+    result = clean_data(df)
+
+    assert len(result) == 1
+    assert result.iloc[0]["Product"] == "Brake Pad"
+    assert result.iloc[0]["Region"] == "İzmir"

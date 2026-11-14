@@ -29,45 +29,46 @@ def build_sample_df():
 
 def test_total_quantity():
     df = build_sample_df()
-
-    kpis, _, _, _ = calculate_kpis(df)
-
+    kpis, _, _, _, _ = calculate_kpis(df)
     assert kpis["Total Quantity"] == 35
 
 
 def test_total_revenue():
     df = build_sample_df()
-
-    kpis, _, _, _ = calculate_kpis(df)
-
+    kpis, _, _, _, _ = calculate_kpis(df)
     # (10*100) + (5*100) + (20*50) = 1000 + 500 + 1000
     assert kpis["Total Revenue"] == 2500
 
 
 def test_total_cost():
     df = build_sample_df()
-
-    kpis, _, _, _ = calculate_kpis(df)
-
+    kpis, _, _, _, _ = calculate_kpis(df)
     # (10*60) + (5*60) + (20*30) = 600 + 300 + 600
     assert kpis["Total Cost"] == 1500
 
 
 def test_total_profit():
     df = build_sample_df()
-
-    kpis, _, _, _ = calculate_kpis(df)
-
+    kpis, _, _, _, _ = calculate_kpis(df)
     assert kpis["Total Profit"] == 1000
 
 
 def test_profit_margin():
     df = build_sample_df()
-
-    kpis, _, _, _ = calculate_kpis(df)
-
+    kpis, _, _, _, _ = calculate_kpis(df)
     # 1000 / 2500 * 100 = 40.0
     assert kpis["Profit Margin"] == pytest.approx(40.0)
+
+
+def test_enriched_dataframe_contains_calculated_columns():
+    df = build_sample_df()
+    _, _, _, _, enriched_df = calculate_kpis(df)
+
+    assert "Revenue" in enriched_df.columns
+    assert "Cost" in enriched_df.columns
+    assert "Profit" in enriched_df.columns
+    assert list(enriched_df["Revenue"]) == [1000, 500, 1000]
+    assert list(enriched_df["Profit"]) == [400, 200, 400]
 
 
 def test_profit_margin_zero_revenue_does_not_crash():
@@ -80,7 +81,7 @@ def test_profit_margin_zero_revenue_does_not_crash():
         "UnitCost": [60],
     })
 
-    kpis, _, _, _ = calculate_kpis(df)
+    kpis, _, _, _, _ = calculate_kpis(df)
 
     assert kpis["Total Revenue"] == 0
     assert kpis["Profit Margin"] == 0
@@ -96,19 +97,20 @@ def test_empty_dataframe_does_not_crash():
         "UnitCost",
     ])
 
-    kpis, region_summary, product_summary, _ = calculate_kpis(df)
+    kpis, region_summary, product_summary, monthly_summary, enriched_df = calculate_kpis(df)
 
     assert kpis["Total Quantity"] == 0
     assert kpis["Total Revenue"] == 0
     assert kpis["Profit Margin"] == 0
     assert region_summary.empty
     assert product_summary.empty
+    assert monthly_summary.empty
+    assert enriched_df.empty
 
 
 def test_region_summary_columns_and_sort_order():
     df = build_sample_df()
-
-    _, region_summary, _, _ = calculate_kpis(df)
+    _, region_summary, _, _, _ = calculate_kpis(df)
 
     assert list(region_summary.columns) == [
         "Region",
@@ -127,8 +129,7 @@ def test_region_summary_columns_and_sort_order():
 
 def test_product_summary_columns_and_sort_order():
     df = build_sample_df()
-
-    _, _, product_summary, _ = calculate_kpis(df)
+    _, _, product_summary, _, _ = calculate_kpis(df)
 
     assert list(product_summary.columns) == [
         "Product",
@@ -145,106 +146,69 @@ def test_product_summary_columns_and_sort_order():
     assert product_summary.iloc[1]["Revenue"] == 1000
 
 
-# ---------------------------------------------------------
-# Gerçek proje sample dataset'i (data/input/*.xlsx, *.csv)
-# için dokümante edilmiş referans sonuçlar.
-#
-# Bu değerler proje baseline'ıdır. Dış dosyalara bağımlılığı 
-# önlemek adına bu baseline verisi mock (sanal) edilmiştir.
-# ---------------------------------------------------------
-class TestRealSampleDatasetBaseline:
+class TestMultiMonthDatasetCalculation:
     @pytest.fixture
-    def real_kpis(self):
-        
-        kpis = {
-            "Total Quantity": 1055,
-            "Total Revenue": 731482,
-            "Total Cost": 492810,
-            "Total Profit": 238672,
-            "Profit Margin": 32.62854041521186 
-        }
-        
-        region_summary = pd.DataFrame({
-            "Region": ["Denizli", "İzmir", "Manisa", "Aydın", "Muğla"],
-            "Revenue": [254700, 186742, 140700, 119940, 29400]
+    def calculated_outputs(self):
+        sample_df = pd.DataFrame({
+            "Date": [
+                "2026-01-10",
+                "2026-01-20",
+                "2026-02-05",
+                "2026-02-18",
+                "2026-03-12",
+            ],
+            "Product": [
+                "Battery",
+                "Engine Oil",
+                "Clutch Kit",
+                "Brake Pad",
+                "Brake Disc",
+            ],
+            "Region": [
+                "Denizli",
+                "İzmir",
+                "Manisa",
+                "Aydın",
+                "Muğla",
+            ],
+            "Quantity": [20, 50, 30, 40, 10],
+            "UnitPrice": [4100.0, 620.0, 2750.0, 893.0, 1450.0],
+            "UnitCost": [3300.0, 410.0, 1850.0, 540.0, 980.0],
         })
-        
-        product_summary = pd.DataFrame({
-            "Product": ["Battery", "Engine Oil", "Clutch Kit", "Brake Pad", "Brake Disc"],
-            "Revenue": [221400, 102300, 82500, 77242, 69600]
-        })
-        
-        monthly_summary = pd.DataFrame({
-            "Month": ["2026-01", "2026-02", "2026-03"],
-            "Revenue": [242817, 249335, 239330],
-            "Profit": [78907, 82185, 77580]
-        })
-        
-        return kpis, region_summary, product_summary, monthly_summary
+        return calculate_kpis(sample_df)
 
-    def test_baseline_totals(self, real_kpis):
-        kpis, _, _, _ = real_kpis
+    def test_multi_month_totals(self, calculated_outputs):
+        kpis, _, _, _, _ = calculated_outputs
 
-        assert kpis["Total Quantity"] == 1055
-        assert kpis["Total Revenue"] == 731482
-        assert kpis["Total Cost"] == 492810
-        assert kpis["Total Profit"] == 238672
-        assert kpis["Profit Margin"] == pytest.approx(32.63, abs=0.01)
+        assert kpis["Total Quantity"] == 150
+        assert kpis["Total Revenue"] == 245720.0
+        assert kpis["Total Cost"] == 173400.0
+        assert kpis["Total Profit"] == 72320.0
+        assert kpis["Profit Margin"] == pytest.approx(29.431873677, abs=0.01)
 
-    def test_baseline_region_revenue(self, real_kpis):
-        _, region_summary, _, _ = real_kpis
+    def test_multi_month_region_ordering(self, calculated_outputs):
+        _, region_summary, _, _, _ = calculated_outputs
 
         expected = {
-            "Denizli": 254700,
-            "İzmir": 186742,
-            "Manisa": 140700,
-            "Aydın": 119940,
-            "Muğla": 29400,
+            "Manisa": 82500.0,
+            "Denizli": 82000.0,
+            "Aydın": 35720.0,
+            "İzmir": 31000.0,
+            "Muğla": 14500.0,
         }
-
-        actual = dict(
-            zip(
-                region_summary["Region"],
-                region_summary["Revenue"],
-            )
-        )
-
+        actual = dict(zip(region_summary["Region"], region_summary["Revenue"]))
         assert actual == expected
 
-    def test_baseline_top5_product_revenue(self, real_kpis):
-        _, _, product_summary, _ = real_kpis
-
-        expected_top5 = {
-            "Battery": 221400,
-            "Engine Oil": 102300,
-            "Clutch Kit": 82500,
-            "Brake Pad": 77242,
-            "Brake Disc": 69600,
-        }
-
-        top5 = product_summary.head(5)
-
-        actual = dict(
-            zip(
-                top5["Product"],
-                top5["Revenue"],
-            )
-        )
-
-        assert actual == expected_top5
-
-    def test_baseline_monthly_revenue_and_profit(self, real_kpis):
-        _, _, _, monthly_summary = real_kpis
+    def test_multi_month_summary_breakdown(self, calculated_outputs):
+        _, _, _, monthly_summary, _ = calculated_outputs
 
         expected = {
-            "2026-01": (242817, 78907),
-            "2026-02": (249335, 82185),
-            "2026-03": (239330, 77580),
+            "2026-01": (113000.0, 26500.0),
+            "2026-02": (118220.0, 41120.0),
+            "2026-03": (14500.0, 4700.0),
         }
-
         actual = {
             row["Month"]: (row["Revenue"], row["Profit"])
             for _, row in monthly_summary.iterrows()
         }
-
         assert actual == expected
